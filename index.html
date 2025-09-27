@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Splatoon Color Lock Converter</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f4f4f4; }
+    .color-block { margin: 15px 0; }
+    input[type="color"] { width: 60px; height: 40px; border: none; cursor: pointer; }
+    button { padding: 6px 12px; font-size: 16px; margin: 10px 0; }
+    .output {
+      margin-top: 20px;
+      background: #222;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 6px;
+      white-space: pre;
+      font-size: 14px;
+      line-height: 1.5em;
+    }
+    .label { color: #0ff; }
+    .address { color: #ff0; }
+    .value { color: #f55; }
+  </style>
+</head>
+<body>
+  <h2>Splatoon Color Lock Converter</h2>
+
+  <div class="color-block">
+    <label>Alpha Color: </label>
+    <input type="color" id="alphaColor" value="#D52A2A">
+  </div>
+
+  <div class="color-block">
+    <label>Bravo Color: </label>
+    <input type="color" id="bravoColor" value="#2AD55A">
+  </div>
+
+  <button onclick="convertColors()">Convert</button>
+
+  <div id="output" class="output"></div>
+  <p>This <a href="https://github.com/BullyWiiPlaza/tcpgecko" target="_blank">TCPGecko</a> code only changes the color lock colors, therefore only client side making it Pretendo safe.</p>
+
+  <script>
+    function float2Hex(value) {
+      let buffer = new ArrayBuffer(4);
+      let view = new DataView(buffer);
+      view.setFloat32(0, value, false); // big-endian
+      let hex = "";
+      for (let i = 0; i < 4; i++) {
+        hex += view.getUint8(i).toString(16).padStart(2, "0");
+      }
+      return hex.toUpperCase();
+    }
+
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+      };
+    }
+
+    function convertColors() {
+      const alphaColor = document.getElementById("alphaColor").value;
+      const bravoColor = document.getElementById("bravoColor").value;
+
+      const alphaRGB = hexToRgb(alphaColor);
+      const bravoRGB = hexToRgb(bravoColor);
+
+      let output = "";
+      output += `${'<span class="address">126B0FB4</span>'} <span class="value">${float2Hex(alphaRGB.r / 255)}</span>\n`;
+      output += `${'<span class="address">126B0FB8</span>'} <span class="value">${float2Hex(alphaRGB.g / 255)}</span>\n`;
+      output += `${'<span class="address">126B0FBC</span>'} <span class="value">${float2Hex(alphaRGB.b / 255)}</span>\n`;
+      output += `${'<span class="address">126B0FC0</span>'} <span class="value">${float2Hex(1.0)}</span>\n`;
+      output += `${'<span class="address">126B1018</span>'} <span class="value">${float2Hex(bravoRGB.r / 255)}</span>\n`;
+      output += `${'<span class="address">126B101C</span>'} <span class="value">${float2Hex(bravoRGB.g / 255)}</span>\n`;
+      output += `${'<span class="address">126B1020</span>'} <span class="value">${float2Hex(bravoRGB.b / 255)}</span>\n`;
+      output += `${'<span class="address">126B1024</span>'} <span class="value">${float2Hex(1.0)}</span>\n`;
+
+      document.getElementById("output").innerHTML = output;
+    }
+  </script>
+</body>
+</html>
